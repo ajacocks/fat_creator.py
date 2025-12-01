@@ -624,18 +624,18 @@ class FATCreator:
                     # Write FSInfo sector (sector 1)
                     f.write(self._create_fsinfo())
 
-                    # Write remaining reserved sectors up to backup boot sector
-                    for _ in range(self.reserved_sectors - 7):  # -7 for boot, fsinfo, and 5 before backup
+                    # Write sectors 2-5 (4 sectors)
+                    for _ in range(4):
                         f.write(b'\x00' * self.bytes_per_sector)
 
                     # Write backup boot sector (sector 6)
                     f.write(self._create_boot_sector())
-                    
-                    # Write backup FSInfo sector
+
+                    # Write backup FSInfo sector (sector 7)
                     f.write(self._create_fsinfo())
-                    
-                    # Write remaining reserved sectors
-                    for _ in range(4):  # Remaining reserved sectors after backup
+
+                    # Write remaining reserved sectors (8-31, which is 24 sectors)
+                    for _ in range(self.reserved_sectors - 8):
                         f.write(b'\x00' * self.bytes_per_sector)
                 else:
                     # Write reserved sectors (if any beyond boot sector) for FAT12/16
@@ -650,7 +650,7 @@ class FATCreator:
                     # For FAT32, root directory is in data area
                     # Calculate data region size
                     bytes_per_cluster = self.sectors_per_cluster * self.bytes_per_sector
-                    
+
                     # Write cluster 2 (root directory)
                     f.write(root_dir_data)
 
@@ -693,8 +693,6 @@ def switch(disk):
 
 def main():
     colors = Colorcodes()
-    # numcolors = subprocess.check_output("tput colors".split())
-    # print("Terminal has "+numcolors.decode().rstrip()+" colors.")
     epilog = f"""
 {colors.bold}{colors.brightblue}examples:
   {colors.brightred}# create a 1.44MiB volume in the file floppy.img
